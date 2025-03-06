@@ -142,6 +142,7 @@ public class RootController extends FXController {
     private void handleLoginAction() {
         LocalDateTime now = LocalDateTime.now();
         int currentTime = now.getHour() * 100 + now.getMinute();
+        boolean isPM = now.getHour() >= 12;
 
         try {
             Student student = getStudentWithID1();
@@ -150,10 +151,8 @@ public class RootController extends FXController {
                 return;
             }
 
-            // Get or create the attendance record for today
             AttendanceRecord todayRecord = getOrCreateDayRecord();
 
-            // Check if an attendance log for this student already exists for today
             AttendanceLog existingLog = attendanceLogs.stream()
                 .filter(log -> log.getRecordID().getDay() == todayRecord.getDay() &&
                                log.getRecordID().getMonth() == todayRecord.getMonth() &&
@@ -164,17 +163,19 @@ public class RootController extends FXController {
 
             if (!isLoggedIn) { // Logging in
                 if (existingLog != null) {
-                    // If a log exists, update its login time if not already set
                     currentLog = existingLog;
-                    if (currentLog.getTimeInAM() == 0) {  // Assuming 0 indicates not set
+                    if (isPM && currentLog.getTimeInPM() == 0) {
+                        currentLog.setTimeInPM(currentTime);
+                        AttendanceLogDAO.update(currentLog);
+                        System.out.println("Existing log updated with PM login time.");
+                    } else if (!isPM && currentLog.getTimeInAM() == 0) {
                         currentLog.setTimeInAM(currentTime);
                         AttendanceLogDAO.update(currentLog);
-                        System.out.println("Existing log updated with login time.");
+                        System.out.println("Existing log updated with AM login time.");
                     } else {
-                        System.out.println("Attendance login already recorded for today.");
+                        System.out.println("Attendance login already recorded for this time period.");
                     }
                 } else {
-                    // Create a new attendance log entry
                     int nextLogId = 1;
                     if (!attendanceLogs.isEmpty()) {
                         nextLogId = attendanceLogs.stream()
@@ -186,27 +187,30 @@ public class RootController extends FXController {
                             nextLogId,
                             todayRecord,
                             student,
-                            currentTime, // timeInAM
-                            0,           // timeOutAM
-                            0,           // timeInPM
-                            0            // timeOutPM
+                            isPM ? 0 : currentTime,    // timeInAM
+                            0,                         // timeOutAM
+                            isPM ? currentTime : 0,    // timeInPM
+                            0                          // timeOutPM
                     );
                     AttendanceLogDAO.insert(currentLog);
                     attendanceLogs.add(currentLog);
-                    System.out.println("New attendance log created for login.");
+                    System.out.println("New attendance log created for " + (isPM ? "PM" : "AM") + " login.");
                 }
             } else { // Logging out
                 if (currentLog != null) {
-                    currentLog.setTimeOutAM(currentTime);
+                    if (isPM) {
+                        currentLog.setTimeOutPM(currentTime);
+                    } else {
+                        currentLog.setTimeOutAM(currentTime);
+                    }
                     AttendanceLogDAO.update(currentLog);
-                    currentLog = null; // Reset active log
-                    System.out.println("Attendance log updated with logout time.");
+                    currentLog = null;
+                    System.out.println("Attendance log updated with " + (isPM ? "PM" : "AM") + " logout time.");
                 } else {
                     System.err.println("No active log to update for logout.");
                 }
             }
 
-            // Toggle login state and update the UI
             isLoggedIn = !isLoggedIn;
             loginButton.setText(isLoggedIn ? "Logout" : "Login");
             updateButtonStyle();
