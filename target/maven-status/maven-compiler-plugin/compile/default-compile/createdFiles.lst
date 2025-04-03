@@ -5,5 +5,4 @@ sms\student\util\StageUtil.class
 sms\student\App.class
 module-info.class
 sms\student\util\SystemTrayUtil$1.class
-sms\student\util\DataUtil.class
 sms\student\app\RootController.class

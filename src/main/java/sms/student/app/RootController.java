@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 
 import dev.finalproject.data.AttendanceLogDAO;
 import dev.finalproject.data.AttendanceRecordDAO;
+import dev.finalproject.database.DataManager;
 import dev.finalproject.models.AttendanceLog;
 import dev.finalproject.models.AttendanceRecord;
 import dev.finalproject.models.Student;
@@ -24,7 +25,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import sms.student.util.DataUtil;
 import sms.student.util.StageUtil;
 import sms.student.util.SystemTrayUtil;
 
@@ -54,9 +54,10 @@ public class RootController extends FXController {
     private double yOffset;
 
     private Stage stage;
-    
 
     private SystemTrayUtil systemTrayUtil;
+
+    private String studentId;
 
     @Override
     public void load() {
@@ -104,17 +105,29 @@ public class RootController extends FXController {
 
     @Override
     protected void load_fields() {
+        studentId = (String) getParameter("STUDENT_ID");
+        System.out.println("Received Student ID in RootController: " + studentId);
+        
         try {
             stage = (Stage) root.getScene().getWindow();
-            studentMasterList = DataUtil.createStudentList();
-            attendanceRecord = DataUtil.createAttendanceRecordList();
-            attendanceLogs = DataUtil.createAttendanceLogList();
+            studentMasterList = DataManager.getInstance().getCollectionsRegistry().getList("STUDENT");
+            attendanceRecord = DataManager.getInstance().getCollectionsRegistry().getList("ATTENDANCE_RECORD");
+            attendanceLogs = DataManager.getInstance().getCollectionsRegistry().getList("ATTENDANCE_LOG");
 
-            loginButton.setDisable(true);
+            // Enable login button after loading data
+            loginButton.setDisable(false);
             dateLabel.getStyleClass().add("date-header");
             loginButton.getStyleClass().add("login-button");
             updateButtonStyle();
-            
+
+            // Verify student exists
+            Student student = getStudentById(studentId);
+            if (student != null) {
+                System.out.println("Found student: " + student.getFirstName() + " " + student.getLastName());
+            } else {
+                System.err.println("Student not found for ID: " + studentId);
+            }
+
             systemTrayUtil = SystemTrayUtil.getInstance();
             systemTrayUtil.setupTray(stage, this::cleanup);
         } catch (Exception e) {
@@ -145,7 +158,7 @@ public class RootController extends FXController {
                 .mapToInt(AttendanceRecord::getRecordID)
                 .max()
                 .orElse(0);
-        
+
         AttendanceRecord newRecord = new AttendanceRecord(
                 maxId + 1,
                 today.getMonthValue(),
@@ -164,65 +177,87 @@ public class RootController extends FXController {
                 .orElse(null);
     }
 
+    private void logAttendanceAction(Student student, boolean isLogin, LocalDateTime timestamp, boolean isPM) {
+        System.out.println("====================================");
+        System.out.println("ATTENDANCE " + (isLogin ? "LOGIN" : "LOGOUT"));
+        System.out.println("Student: " + student.getFirstName() + " " + student.getLastName());
+        System.out.println("Student ID: " + student.getStudentID());
+        System.out.println("Date: " + timestamp.format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy")));
+        System.out.println("Time: " + timestamp.format(DateTimeFormatter.ofPattern("hh:mm:ss a")));
+        System.out.println("Period: " + (isPM ? "PM" : "AM"));
+        if (!isLogin && currentLog != null) {
+            System.out.println("Session Duration: " + calculateDuration(isPM
+                    ? currentLog.getTimeInPM() : currentLog.getTimeInAM(),
+                    timestamp.getHour() * 100 + timestamp.getMinute()));
+        }
+        System.out.println("====================================");
+    }
+
+    private String calculateDuration(int timeIn, int timeOut) {
+        int inHours = timeIn / 100;
+        int inMinutes = timeIn % 100;
+        int outHours = timeOut / 100;
+        int outMinutes = timeOut % 100;
+
+        int totalMinutes = (outHours * 60 + outMinutes) - (inHours * 60 + inMinutes);
+        return String.format("%d hours, %d minutes", totalMinutes / 60, totalMinutes % 60);
+    }
+
     @FXML
     private void handleLoginAction() {
+        Student student = getStudentById(studentId);
+        if (student == null) {
+            System.err.println("Student not found with ID: " + studentId);
+            return;
+        }
+
         LocalDateTime now = LocalDateTime.now();
-        int currentTime = now.getHour() * 100 + now.getMinute();
         boolean isPM = now.getHour() >= 12;
-
+        int currentTime = now.getHour() * 100 + now.getMinute();
+        
         try {
-            Student student = getStudentWithID1();
-            if (student == null) {
-                System.err.println("Student with ID 1 not found!");
-                return;
-            }
-
             AttendanceRecord todayRecord = getOrCreateDayRecord();
-
-            AttendanceLog existingLog = attendanceLogs.stream()
+            
+            if (!isLoggedIn) { // Login Process
+                logAttendanceAction(student, true, now, isPM);
+                
+                currentLog = attendanceLogs.stream()
                     .filter(log -> log.getRecordID().getDay() == todayRecord.getDay()
-                    && log.getRecordID().getMonth() == todayRecord.getMonth()
-                    && log.getRecordID().getYear() == todayRecord.getYear()
-                    && log.getStudentID().getStudentID() == student.getStudentID())
+                        && log.getRecordID().getMonth() == todayRecord.getMonth()
+                        && log.getRecordID().getYear() == todayRecord.getYear()
+                        && log.getStudentID().getStudentID() == student.getStudentID())
                     .findFirst()
-                    .orElse(null);
-
-            if (!isLoggedIn) { // Logging in
-                if (existingLog != null) {
-                    currentLog = existingLog;
-                    if (isPM && currentLog.getTimeInPM() == 0) {
-                        currentLog.setTimeInPM(currentTime);
-                        AttendanceLogDAO.update(currentLog);
-                        System.out.println("Existing log updated with PM login time.");
-                    } else if (!isPM && currentLog.getTimeInAM() == 0) {
-                        currentLog.setTimeInAM(currentTime);
-                        AttendanceLogDAO.update(currentLog);
-                        System.out.println("Existing log updated with AM login time.");
-                    } else {
-                        System.out.println("Attendance login already recorded for this time period.");
-                    }
-                } else {
-                    int nextLogId = 1;
-                    if (!attendanceLogs.isEmpty()) {
-                        nextLogId = attendanceLogs.stream()
+                    .orElseGet(() -> {
+                        // Create new log if none exists
+                        int nextLogId = attendanceLogs.isEmpty() ? 1 :
+                            attendanceLogs.stream()
                                 .mapToInt(AttendanceLog::getLogID)
                                 .max()
                                 .getAsInt() + 1;
-                    }
-                    currentLog = new AttendanceLog(
-                            nextLogId,
-                            todayRecord,
-                            student,
-                            isPM ? 0 : currentTime, // timeInAM
-                            0, // timeOutAM
-                            isPM ? currentTime : 0, // timeInPM
-                            0 // timeOutPM
-                    );
-                    AttendanceLogDAO.insert(currentLog);
-                    attendanceLogs.add(currentLog);
-                    System.out.println("New attendance log created for " + (isPM ? "PM" : "AM") + " login.");
+                                
+                        AttendanceLog newLog = new AttendanceLog(
+                            nextLogId, todayRecord, student,
+                            isPM ? 0 : currentTime,  // timeInAM
+                            0,                       // timeOutAM
+                            isPM ? currentTime : 0,  // timeInPM
+                            0                        // timeOutPM
+                        );
+                        AttendanceLogDAO.insert(newLog);
+                        attendanceLogs.add(newLog);
+                        return newLog;
+                    });
+                
+                // Update existing log's time
+                if (isPM && currentLog.getTimeInPM() == 0) {
+                    currentLog.setTimeInPM(currentTime);
+                } else if (!isPM && currentLog.getTimeInAM() == 0) {
+                    currentLog.setTimeInAM(currentTime);
                 }
-            } else { // Logging out
+                AttendanceLogDAO.update(currentLog);
+                
+            } else { // Logout Process
+                logAttendanceAction(student, false, now, isPM);
+                
                 if (currentLog != null) {
                     if (isPM) {
                         currentLog.setTimeOutPM(currentTime);
@@ -231,24 +266,25 @@ public class RootController extends FXController {
                     }
                     AttendanceLogDAO.update(currentLog);
                     currentLog = null;
-                    System.out.println("Attendance log updated with " + (isPM ? "PM" : "AM") + " logout time.");
-                } else {
-                    System.err.println("No active log to update for logout.");
                 }
             }
-
+            
+            // Toggle login state
             isLoggedIn = !isLoggedIn;
             loginButton.setText(isLoggedIn ? "Logout" : "Login");
             updateButtonStyle();
-
-            String action = isLoggedIn ? "Login" : "Logout";
-            System.out.println(action + " Time for Student ID 1: "
-                    + now.format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy")) + " at "
-                    + now.format(DateTimeFormatter.ofPattern("hh:mm:ss a")));
+            
         } catch (Exception e) {
             System.err.println("Error handling login/logout: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private Student getStudentById(String id) {
+        return studentMasterList.stream()
+                .filter(student -> String.valueOf(student.getStudentID()).equals(id))
+                .findFirst()
+                .orElse(null);
     }
 
     private void updateButtonStyle() {
@@ -265,9 +301,9 @@ public class RootController extends FXController {
     }
 
     private void handleMouseDragged(MouseEvent event) {
-        StageUtil.makeDraggable(stage, 
-            event.getScreenX() - xOffset,
-            event.getScreenY() - yOffset
+        StageUtil.makeDraggable(stage,
+                event.getScreenX() - xOffset,
+                event.getScreenY() - yOffset
         );
     }
 
