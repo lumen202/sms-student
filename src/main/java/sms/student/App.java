@@ -6,8 +6,8 @@ import dev.sol.core.application.loader.FXLoaderFactory;
 import dev.sol.core.scene.FXSkin;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
-import sms.student.app.AuthLoader;
-import sms.student.app.RootController;
+import sms.student.app.auth.AuthController;
+import sms.student.app.auth.AuthLoader;
 
 public class App extends FXApplication {
 
@@ -19,7 +19,9 @@ public class App extends FXApplication {
         Platform.setImplicitExit(false);
 
         // Initialize UI
+    
         initialize_application();
+        
 
     }
 
@@ -28,7 +30,7 @@ public class App extends FXApplication {
         setSkin(FXSkin.PRIMER_LIGHT);
         getApplicationStage().getIcons().add(
                 new Image(getClass()
-                        .getResource("/sms/student/assets/img/logo.png")
+                        .getResource("/sms/student/assets/icons/logo.png")
                         .toExternalForm()));
     }
 
@@ -39,7 +41,7 @@ public class App extends FXApplication {
 
     private void initialize_application() {
         FXLoaderFactory.createInstance(AuthLoader.class,
-                App.class.getResource("/sms/student/app/AUTH.fxml"))
+                App.class.getResource("/sms/student/app/auth/AUTH.fxml"))
                 .addParameter("scene", applicationScene)
                 .addParameter("OWNER", applicationStage)
                 .initialize()

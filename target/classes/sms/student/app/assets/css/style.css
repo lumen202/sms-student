@@ -1,0 +1,211 @@
+/* Theme Colors */
+* {
+  -sms-primary: #003366;  /* Original blue */
+  -sms-secondary: #800000; /* Original maroon */
+  -sms-background: #f8f9fa;
+  -sms-border: #dee2e6;
+  -sms-accent: #ffd700;
+}
+
+/* Container Styles */
+.main-container {
+  -fx-background-color: -sms-background;
+}
+
+.widget-background {
+  -fx-background-color: #2d3447;
+  -fx-background-radius: 10;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 0);
+  -fx-cursor: move;
+}
+
+.auth-container {
+  -fx-background-color: white;
+  -fx-padding: 30px;
+  -fx-spacing: 20px;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 0);
+  -fx-background-radius: 8;
+  -fx-border-radius: 8;
+  -fx-border-color: -sms-border;
+  -fx-border-width: 1;
+}
+
+.confirm-dialog {
+  -fx-background-color: white;
+  -fx-padding: 25px;
+  -fx-spacing: 20px;
+  -fx-background-radius: 8;
+  -fx-border-radius: 8;
+  -fx-border-color: -sms-border;
+  -fx-border-width: 1;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 0);
+}
+
+/* Header Styles */
+.date-header {
+  -fx-font-size: 12px;
+  -fx-text-fill: #e8e8e8;
+  -fx-font-family: "Segoe UI";
+  -fx-font-weight: bold;
+  -fx-padding: 2px;
+}
+
+.auth-header {
+  -fx-font-size: 24px;
+  -fx-font-weight: bold;
+  -fx-text-fill: -sms-primary;
+  -fx-padding: 0 0 10 0;
+}
+
+.confirm-header {
+  -fx-font-size: 22px;
+  -fx-font-weight: bold;
+  -fx-text-fill: -sms-primary;
+  -fx-padding: 0 0 15 0;
+}
+
+.name-header {
+  -fx-font-size: 16px;
+  -fx-text-fill: white;
+  -fx-font-family: "Segoe UI";
+  -fx-font-weight: bold;
+  -fx-padding: 2px;
+  -fx-text-alignment: center;
+}
+
+/* Label Styles */
+.time-label {
+  -fx-font-size: 20px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #FFFFFF;
+  -fx-font-family: "Segoe UI";
+  -fx-padding: 2px;
+}
+
+.error-label {
+  -fx-text-fill: #ff6b6b;
+  -fx-font-size: 12px;
+}
+
+.student-details {
+  -fx-padding: 15px;
+  -fx-background-color: derive(-sms-background, 2%);
+  -fx-background-radius: 8;
+  -fx-border-radius: 8;
+  -fx-border-color: derive(-sms-border, -5%);
+  -fx-border-width: 1;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 0);
+}
+
+.student-details Label {
+  -fx-font-size: 14px;
+  -fx-text-fill: #495057;
+}
+
+.student-details .label-header {
+  -fx-font-weight: bold;
+  -fx-text-fill: derive(-sms-primary, 10%);
+  -fx-font-size: 14px;
+}
+
+.student-details .label-value {
+  -fx-font-size: 14px;
+  -fx-text-fill: #2D3447;
+  -fx-font-family: "Segoe UI";
+}
+
+/* Input Styles */
+.auth-input {
+  -fx-background-color: #2a324b;
+  -fx-text-fill: #ffffff;
+  -fx-prompt-text-fill: #8c92a3;
+  -fx-min-width: 200px;
+  -fx-padding: 8px;
+  -fx-border-color: #414b66;
+  -fx-border-width: 1px;
+  -fx-border-radius: 4px;
+  -fx-background-radius: 4px;
+}
+
+.auth-input:focused {
+  -fx-background-color: #323b5c;
+  -fx-border-color: #2196f3;
+}
+
+/* Button Styles */
+.action-button {
+  -fx-background-color: -sms-primary;  /* Back to blue for Time In */
+  -fx-text-fill: white;
+  -fx-font-size: 14px;
+  -fx-font-weight: bold;
+  -fx-padding: 10px 20px;
+  -fx-background-radius: 5;
+  -fx-cursor: hand;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 1);
+}
+
+.action-button:hover {
+  -fx-background-color: derive(-sms-primary, 20%);
+}
+
+.action-button-secondary {
+  -fx-background-color: -sms-secondary;
+  -fx-text-fill: white;
+  -fx-font-size: 14px;
+  -fx-font-weight: bold;
+  -fx-padding: 10px 20px;
+  -fx-background-radius: 5;
+  -fx-cursor: hand;
+  -fx-effect: none;
+  -fx-focus-color: transparent;
+  -fx-faint-focus-color: transparent;
+  -fx-focus-traversable: false;
+}
+
+.action-button-secondary:hover {
+  -fx-background-color: derive(-sms-secondary, 20%);
+}
+
+.cancel-button {
+  -fx-background-color: #6c757d;
+  -fx-text-fill: white;
+  -fx-font-size: 14px;
+  -fx-font-weight: bold;
+  -fx-padding: 10px 20px;
+  -fx-background-radius: 5;
+  -fx-cursor: hand;
+  -fx-min-width: 120px;
+  -fx-min-height: 40px;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 1);
+}
+
+.cancel-button:hover {
+  -fx-background-color: derive(#6c757d, 10%);
+}
+
+/* Icon Styles */
+.button-icon {
+    -fx-icon-color: white !important;
+    -fx-fill: white !important;
+    -fx-opacity: 0.9;
+}
+
+.action-button:hover .button-icon {
+    -fx-opacity: 1;
+    -fx-effect: dropshadow(gaussian, white, 10, 0, 0, 0);
+}
+
+.action-button-secondary:hover .button-icon {
+    -fx-opacity: 1;
+    -fx-effect: dropshadow(gaussian, white, 10, 0, 0, 0);
+}
+
+/* Other Styles */
+.loading {
+  -fx-opacity: 0.6;
+}
+
+.button-container {
+  -fx-spacing: 15px;
+  -fx-padding: 15 0 0 0;
+}

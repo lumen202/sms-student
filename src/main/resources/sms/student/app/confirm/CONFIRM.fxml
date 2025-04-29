@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="root" alignment="CENTER" minWidth="405.0" prefHeight="333.0" prefWidth="437.0" spacing="20.0" styleClass="confirm-dialog" stylesheets="@../assets/css/style.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sms.student.app.confirm.ConfirmController">
+    <padding>
+        <Insets bottom="25" left="25" right="25" top="25" />
+    </padding>
+    <children>
+        <Label styleClass="confirm-header" text="Confirm Student Details" />
+        <VBox spacing="15" styleClass="student-details">
+            <padding>
+                <Insets bottom="15" left="20" right="20" top="15" />
+            </padding>
+            <GridPane hgap="20" vgap="15">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="100" />
+                    <ColumnConstraints hgrow="ALWAYS" />
+                </columnConstraints>
+                <Label styleClass="label-header" text="Name:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                <Label fx:id="nameLabel" styleClass="label-value" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                
+                <Label styleClass="label-header" text="Student ID:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                <Label fx:id="idLabel" styleClass="label-value" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                
+                <Label styleClass="label-header" text="School Year:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                <Label fx:id="yearLabel" styleClass="label-value" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <rowConstraints>
+               <RowConstraints />
+               <RowConstraints />
+               <RowConstraints />
+            </rowConstraints>
+            </GridPane>
+        </VBox>
+        <HBox alignment="CENTER" spacing="15" styleClass="button-container">
+            <Button fx:id="confirmButton" minHeight="40" onAction="#handleConfirm" prefWidth="120" styleClass="action-button" text="Confirm" />
+            <Button fx:id="cancelButton" minHeight="40" onAction="#handleCancel" prefWidth="120" styleClass="action-button-secondary" text="Cancel" />
+        </HBox>
+    </children>
+</VBox>
