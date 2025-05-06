@@ -67,7 +67,17 @@ public class RootController extends FXController {
             throw new IllegalStateException("Stage parameter is required");
         }
 
-        // Initialize system tray first
+        // Configure stage behavior for widget-like persistence
+        stage.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal) {
+                Platform.runLater(() -> {
+                    stage.setAlwaysOnTop(true);
+                    stage.toFront();
+                });
+            }
+        });
+
+        // Initialize system tray
         systemTrayUtil = SystemTrayUtil.getInstance();
         systemTrayUtil.setupTray(stage, this::cleanup);
 
@@ -152,8 +162,24 @@ public class RootController extends FXController {
 
     @Override
     protected void load_listeners() {
-        root.setOnMousePressed(this::handleMousePressed);
-        root.setOnMouseDragged(this::handleMouseDragged);
+        root.setOnMousePressed(event -> {
+            xOffset = event.getSceneX();
+            yOffset = event.getSceneY();
+            event.consume();
+        });
+
+        root.setOnMouseDragged(event -> {
+            StageUtil.makeDraggable(stage,
+                    event.getScreenX() - xOffset,
+                    event.getScreenY() - yOffset);
+            event.consume();
+        });
+
+        // Add click handler to prevent focus loss behavior
+        root.setOnMouseClicked(event -> {
+            stage.setAlwaysOnTop(true);
+            event.consume();
+        });
     }
 
     private AttendanceRecord getOrCreateDayRecord() {
@@ -278,7 +304,13 @@ public class RootController extends FXController {
         }
         logAttendanceAction(student, false, now, isPM);
         updateLogoutTime(isPM, currentTime);
-        terminateApplication();
+        // Call cleanup and exit
+        cleanup();
+        Platform.runLater(() -> {
+            stage.close();
+            Platform.exit();
+            System.exit(0);
+        });
     }
 
     private void processAttendanceLog(Student student, boolean isPM, int currentTime, AttendanceRecord todayRecord) {

@@ -1,6 +1,7 @@
 package sms.student.app.confirm;
 
 import dev.sol.core.application.FXController;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
@@ -22,6 +23,7 @@ public class ConfirmController extends FXController {
 
     @Override
     protected void load_fields() {
+        System.out.println("Loading fields in ConfirmController");
         student = (Student) getParameter("STUDENT");
         schoolYear = (String) getParameter("SCHOOL_YEAR");
         onConfirm = (Runnable) getParameter("ON_CONFIRM");
@@ -35,18 +37,24 @@ public class ConfirmController extends FXController {
     @FXML
     private void handleConfirm() {
         Stage stage = (Stage) nameLabel.getScene().getWindow();
-        stage.close();
         if (onConfirm != null) {
-            onConfirm.run();
+            Platform.runLater(() -> {
+                stage.hide();
+                onConfirm.run();
+                stage.close();
+            });
         }
     }
 
     @FXML
     private void handleCancel() {
         Stage stage = (Stage) nameLabel.getScene().getWindow();
-        stage.close();
         if (onCancel != null) {
-            onCancel.run();
+            Platform.runLater(() -> {
+                stage.hide();
+                onCancel.run();
+                stage.close();
+            });
         }
     }
 

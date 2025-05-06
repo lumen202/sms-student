@@ -49,6 +49,7 @@ public class AuthController extends FXController {
 
     @Override
     protected void load_fields() {
+        System.out.println("Loading fields in AuthController");	
         errorLabel.setText("");
         setupButtons();
     }
@@ -63,26 +64,28 @@ public class AuthController extends FXController {
     }
 
     private void proceedToMainWindow(Student student) {
-        Stage rootStage = new Stage();
-        rootStage.initStyle(StageStyle.UNDECORATED);
-
         String studentId = String.valueOf(student.getStudentID());
         logger.info("Creating main window for student ID: {}", studentId);
+
+        // Close current stage first
+        Stage currentStage = (Stage) root.getScene().getWindow();
+        currentStage.hide(); // Hide instead of close
+
+        Stage rootStage = new Stage();
+        rootStage.initStyle(StageStyle.UNDECORATED);
 
         RootLoader rootLoader = (RootLoader) FXLoaderFactory
                 .createInstance(RootLoader.class,
                         App.class.getResource("/sms/student/app/root/ROOT.fxml"))
-                .addParameter("scene", new Scene(new Group()))
-                .addParameter("OWNER", rootStage)
                 .addParameter("STUDENT_ID", studentId)
+                .addParameter("STAGE", rootStage)
                 .initialize();
 
-        rootStage.requestFocus();
         rootLoader.load();
-        Platform.setImplicitExit(false);
+        rootStage.show();
+        rootStage.requestFocus();
 
-        // Close current stage
-        Stage currentStage = (Stage) root.getScene().getWindow();
+        // Finally close the auth stage
         Platform.runLater(() -> currentStage.close());
     }
 
@@ -138,8 +141,9 @@ public class AuthController extends FXController {
 
             KeyDecryptor.DecryptedInfo info = KeyDecryptor.getDecryptedInfo(qrText);
             if (info != null && info.getStudent() != null) {
-                // Save student data to JSON before showing confirmation
+                // Save both student data and last login
                 JSONStorage.saveStudentData(info.getStudent());
+                JSONStorage.saveLastLogin(info.getStudentId());
                 showConfirmationDialog(info.getStudent(), info.getSchoolYear());
             } else {
                 errorLabel.setText("Invalid QR code");

@@ -22,13 +22,14 @@ module sms.student {
     requires bridj;
     requires org.slf4j;
     requires com.google.gson;
-    requires json.simple;  // Add this line
+    requires json.simple;
+    requires jakarta.json;
 
     opens sms.student to javafx.fxml, core.fx;
     opens sms.student.app.auth to javafx.fxml, core.fx;
     opens sms.student.app.confirm to javafx.fxml, core.fx;
     opens sms.student.app.root to javafx.fxml, core.fx;
-    opens sms.student.util to javafx.fxml, core.fx;
+    opens sms.student.util to javafx.fxml, core.fx, jakarta.json;
 
     exports sms.student;
     exports sms.student.util;
